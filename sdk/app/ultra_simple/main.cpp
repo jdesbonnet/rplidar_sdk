@@ -2,6 +2,11 @@
  *  RPLIDAR
  *  Ultra Simple Data Grabber Demo App
  *
+ *
+ *  Modification by Joe Desbonnet to format output columns 
+ *  more suited to plotting with Gnuplot. Add timestamp.
+ *  JD 2021-04-15
+ *
  *  Copyright (c) 2009 - 2014 RoboPeak Team
  *  http://www.robopeak.com
  *  Copyright (c) 2014 - 2019 Shanghai Slamtec Co., Ltd.
@@ -26,6 +31,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "rplidar.h" //RPLIDAR standard sdk, all-in-one header
 
@@ -85,7 +91,10 @@ int main(int argc, const char * argv[]) {
     const char * opt_com_path = NULL;
     _u32         baudrateArray[2] = {115200, 256000};
     _u32         opt_com_baudrate = 0;
+    _u32         iter = 0;
     u_result     op_result;
+
+    struct timespec timestamp;
 
     bool useArgcBaudrate = false;
 
@@ -201,15 +210,23 @@ int main(int argc, const char * argv[]) {
 
     // fetech result and print it out...
     while (1) {
+
+        iter++;
+
         rplidar_response_measurement_node_hq_t nodes[8192];
         size_t   count = _countof(nodes);
+
+	// timestamp of reception of start of frame 
+	clock_gettime(CLOCK_REALTIME, &timestamp);
 
         op_result = drv->grabScanDataHq(nodes, count);
         if (IS_OK(op_result)) {
             drv->ascendScanData(nodes, count);
             for (int pos = 0; pos < (int)count ; ++pos) {
-                printf("%s theta: %03.2f Dist: %08.2f Q: %d \n", 
-                    (nodes[pos].flag & RPLIDAR_RESP_MEASUREMENT_SYNCBIT) ?"S ":"  ", 
+		printf ("%ld.%03ld ", timestamp.tv_sec, timestamp.tv_nsec/1000000);
+                printf("%05d %d %03.2f %05.0f %03d \n", 
+                    iter,
+                    (nodes[pos].flag & RPLIDAR_RESP_MEASUREMENT_SYNCBIT) ? 1 : 0, 
                     (nodes[pos].angle_z_q14 * 90.f / (1 << 14)), 
                     nodes[pos].dist_mm_q2/4.0f,
                     nodes[pos].quality);
