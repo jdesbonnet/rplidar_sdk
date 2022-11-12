@@ -281,23 +281,31 @@ int main(int argc, const char * argv[]) {
 
 
         loopCount++;
+
+        /*
         if ( loopCount % 2 != 0) {
             continue;
         }
+        */
 
         if (SL_IS_OK(op_result)) {
             drv->ascendScanData(nodes, count);
-            for (int pos = 0; pos < (int)count ; ++pos) {
 
+	    printf ("{\"t\": %ld.%03ld, \"scan\":[", timestamp.tv_sec, timestamp.tv_nsec/1000000);
+
+            for (int pos = 0; pos < (int)count ; ++pos) {
                 if (nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT != 47) {
                     continue;
                 }
-		printf ("%ld.%03ld ", timestamp.tv_sec, timestamp.tv_nsec/1000000);
-                printf("%d %.0f\n", 
+                if (pos>0) {
+			printf (",");
+                }
+                printf("[%d,%.0f]", 
                     nodes[pos].angle_z_q14,
                     nodes[pos].dist_mm_q2/4.0f);
 
             }
+            printf ("]}\n");
         }
 
         if (ctrl_c_pressed){ 
