@@ -106,6 +106,8 @@ int main(int argc, const char * argv[]) {
 
     IChannel* _channel;
 
+    int loopCount = 0;
+
     printf("Ultra simple LIDAR data grabber for SLAMTEC LIDAR.\n"
            "Version: %s\n", "SL_LIDAR_SDK_VERSION");
 
@@ -251,8 +253,6 @@ int main(int argc, const char * argv[]) {
             , devinfo.firmware_version & 0xFF
             , (int)devinfo.hardware_version);
 
-
-
     // check health...
     if (!checkSLAMTECLIDARHealth(drv)) {
         goto on_finished;
@@ -267,19 +267,30 @@ int main(int argc, const char * argv[]) {
 
     // fetech result and print it out...
     while (1) {
+
         sl_lidar_response_measurement_node_hq_t nodes[8192];
         size_t   count = _countof(nodes);
 
         op_result = drv->grabScanDataHq(nodes, count);
 
+
+        loopCount++;
+        if ( loopCount % 2 != 0) {
+            continue;
+        }
+
         if (SL_IS_OK(op_result)) {
             drv->ascendScanData(nodes, count);
             for (int pos = 0; pos < (int)count ; ++pos) {
-                printf("%s theta: %03.2f Dist: %08.2f Q: %d \n", 
-                    (nodes[pos].flag & SL_LIDAR_RESP_HQ_FLAG_SYNCBIT) ?"S ":"  ", 
-                    (nodes[pos].angle_z_q14 * 90.f) / 16384.f,
-                    nodes[pos].dist_mm_q2/4.0f,
-                    nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT);
+
+                if (nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT != 47) {
+                    continue;
+                }
+
+                printf("%d %.0f\n", 
+                    nodes[pos].angle_z_q14,
+                    nodes[pos].dist_mm_q2/4.0f);
+
             }
         }
 
