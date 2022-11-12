@@ -107,6 +107,8 @@ int main(int argc, const char * argv[]) {
     IChannel* _channel;
 
     int loopCount = 0;
+    struct timespec timestamp;
+
 
     printf("Ultra simple LIDAR data grabber for SLAMTEC LIDAR.\n"
            "Version: %s\n", "SL_LIDAR_SDK_VERSION");
@@ -271,7 +273,11 @@ int main(int argc, const char * argv[]) {
         sl_lidar_response_measurement_node_hq_t nodes[8192];
         size_t   count = _countof(nodes);
 
+	// timestamp of reception of start of frame 
+	clock_gettime(CLOCK_REALTIME, &timestamp);
+
         op_result = drv->grabScanDataHq(nodes, count);
+
 
 
         loopCount++;
@@ -286,7 +292,7 @@ int main(int argc, const char * argv[]) {
                 if (nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT != 47) {
                     continue;
                 }
-
+		printf ("%ld.%03ld ", timestamp.tv_sec, timestamp.tv_nsec/1000000);
                 printf("%d %.0f\n", 
                     nodes[pos].angle_z_q14,
                     nodes[pos].dist_mm_q2/4.0f);
