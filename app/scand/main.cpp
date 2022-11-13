@@ -107,6 +107,7 @@ int main(int argc, const char * argv[]) {
     IChannel* _channel;
 
     int loopCount = 0;
+    bool first_point;
     struct timespec timestamp;
 
 
@@ -292,14 +293,18 @@ int main(int argc, const char * argv[]) {
             drv->ascendScanData(nodes, count);
 
 	    printf ("{\"t\": %ld.%03ld, \"scan\":[", timestamp.tv_sec, timestamp.tv_nsec/1000000);
-
+            first_point = true;
             for (int pos = 0; pos < (int)count ; ++pos) {
                 if (nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT != 47) {
                     continue;
                 }
-                if (pos>0) {
-			printf (",");
-                }
+
+                if (first_point) {
+                        first_point = false;
+                } else {
+                        printf (",");
+		}
+
                 printf("[%d,%.0f]", 
                     nodes[pos].angle_z_q14,
                     nodes[pos].dist_mm_q2/4.0f);
