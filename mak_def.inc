@@ -126,7 +126,7 @@ CXX_INCLUDES += $(C_INCLUDES)
 CSTANDARD = -std=gnu99
 CXXSTANDARD = -std=c++11
 CDEBUG = -g$(DEBUG_TYPE)
-CWARN = -Wall 
+CWARN = -Wall -Wno-narrowing
 CTUNING = -funsigned-char 
 
 # force everything to become PIC, unless explicitly claimed
